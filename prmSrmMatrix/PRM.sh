@@ -1,0 +1,1 @@
+java -Xmx10000M -cp /projects/mohimanilab/liu/MSGFPlus/bin/MSGFPlus.jar edu.ucsd.msjava.ui.PRMSpecGen -s /projects/mohimanilab/liu/MSGFPlus/data/MSV000081935_subset/20150306_Rix_Ceri-heavy_PolyMac_10a.mzid_20150306_Rix_Ceri-heavy_PolyMac_10a.MGF -o ./result/PRM_20150306_Rix_Ceri-heavy_PolyMac_10a.mzid_20150306_Rix_Ceri-heavy_PolyMac_10a.mgf

@@ -1,0 +1,1 @@
+java -Xmx3500M -cp /projects/mohimanilab/liu/MSGFPlus/bin/MSGFPlus.jar edu.ucsd.msjava.ui.MzIDToTsv -i /projects/mohimanilab/liu/MSGFPlus/example/result/search_20150306_Rix_Ceri-heavy_PolyMac_10a.mzid_20150306_Rix_Ceri-heavy_PolyMac_10a.mzid -o ./result/search_20150306_Rix_Ceri-heavy_PolyMac_10a.mzid_20150306_Rix_Ceri-heavy_PolyMac_10a.mzid.tsv
