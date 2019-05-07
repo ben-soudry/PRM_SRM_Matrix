@@ -101,13 +101,80 @@ PrmSrmMatrix::PrmSrmMatrix(std::string fastaFile, std::string prmSrmFile, std::s
     std::cout << "=================================================" << std::endl;
     
     int matchCount = 0;
+     
+    std::unordered_map<int, bool> seen_specID;
+
     for(int i = 0; i < tsvResults->matches.size(); i++){
-        for(int j = 0; j < tsvResults->matches[i].proteins.size(); j++){
-            if(tsvResults->matches[i].eValue >= 0.001){
-                continue;
-            }       
-    
-            std::string currProtein = tsvResults->matches[i].proteins[j]; 
+        //for(int j = 0; j < tsvResults->matches[i].proteins.size(); j++){
+        if(tsvResults->matches[i].eValue >= 0.001){
+            continue;
+        }       
+        
+        double* t_prm = nullptr; //Note, theoretical_vector allocates the memory
+        double* t_srm = nullptr;
+        double total_mass;
+        theoretical_vector(0, tsvResults->matches[i].peptide, t_prm, t_srm, total_mass);
+
+        auto t_prm_vec = std::vector<double>(t_prm, t_prm + tsvResults->matches[i].peptide.length()-1);
+        auto t_srm_vec = std::vector<double>(t_srm, t_srm + tsvResults->matches[i].peptide.length()-1);
+                 
+        std::cout << "Matching protein: " << tsvResults->matches[i].title << std::endl;
+        std::cout << " SpecID: " <<  tsvResults->matches[i].specID << std::endl;
+        std::cout << " E-Value: " << tsvResults->matches[i].eValue << std::endl;
+
+
+        //Put peaks in a hash table for fast access
+       
+        std::unordered_map<int, bool> has_t_prm_peak;
+        std::unordered_map<int, bool> has_t_srm_peak;
+            
+        std::cout << " PRM: "; 
+        for(int k = 0; k < t_prm_vec.size(); k++){
+            std::cout << t_prm_vec[k] << ", ";
+            has_t_prm_peak.insert(std::make_pair((int) std::round(t_prm_vec[k]), true));
+        }
+        std::cout << std::endl;
+        std::cout << " SRM: "; 
+        for(int k = 0; k < t_srm_vec.size(); k++){
+            std::cout << t_srm_vec[k] << ", ";
+            has_t_srm_peak.insert(std::make_pair((int) std::round(t_srm_vec[k]), true));
+        }
+          
+        //Filling count matrix
+        int specID =  tsvResults->matches[i].specID;
+        auto emapFind = experimentalPrmSrmMap.find(specID);
+        if(emapFind != experimentalPrmSrmMap.end()){
+            matchCount += 1;
+            std::cout << "Filling count matrix!" << std::endl;
+            experimentalPrmSrm e_prm_srm  = emapFind->second;
+            for(int i = 0; i < e_prm_srm.prm.size(); i++){
+                totalCounts += 1;
+                int prm_rangeId = getRangeID(e_prm_srm.prm[i]);
+                   
+                //std::cout << "prm_range_id: " << prm_rangeId << std::endl;
+                auto has_prm_peak = has_t_prm_peak.find(i);
+                if(has_prm_peak != has_t_prm_peak.end()){
+                    prm_countMatrix[1][prm_rangeId] += 1;
+                } else {
+                    prm_countMatrix[0][prm_rangeId] += 1;
+                }
+                
+                int srm_rangeId = getRangeID(e_prm_srm.srm[i]);
+                //std::cout << "srm_range_id: " << srm_rangeId << std::endl;
+                
+                auto has_srm_peak = has_t_srm_peak.find(i);
+                if(has_srm_peak != has_t_srm_peak.end()){
+                    srm_countMatrix[1][srm_rangeId] += 1;
+                } else {
+                    srm_countMatrix[0][srm_rangeId] += 1;
+                }
+            }
+
+        }                
+       
+
+
+            /*std::string currProtein = tsvResults->matches[i].proteins[j]; 
             
             //clean up protein name
             std::stringstream nameBuffer(currProtein);
@@ -171,10 +238,10 @@ PrmSrmMatrix::PrmSrmMatrix(std::string fastaFile, std::string prmSrmFile, std::s
                     }
 
                 }                
-                
+                */
                 std::cout << std::endl; 
-            }
-        }
+            //}
+        //}
     }
     std::cout << "# Matches Found: " << matchCount << std::endl;
     
@@ -191,7 +258,7 @@ PrmSrmMatrix::PrmSrmMatrix(std::string fastaFile, std::string prmSrmFile, std::s
     }
     std::cout << std::endl;
     
-    std::cout << "SRM count Matrix: " << std::endl;
+    std::cout << "SRM prob Matrix: " << std::endl;
     for(int i = 0; i < numRanges; i++){
         srm_probMatrix[0][i] = (double) srm_countMatrix[0][i] / (double) totalCounts;
         std::cout << srm_probMatrix[0][i] << ", ";
