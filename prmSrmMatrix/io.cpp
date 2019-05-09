@@ -118,6 +118,7 @@ prmSrm::prmSrm(std::string str_prmFileName){
         //printf("%i,SRM finish\n",i);
         //delete[] srm_temp;
     }
+    inFile.close();
     toc = Clock::now();
     printf("Total initialization time is %lf seconds.\n",double(std::chrono::duration_cast<std::chrono::seconds>(toc - tic).count()));
 }
@@ -128,6 +129,8 @@ prmSrm::~prmSrm(){
     //        std::cout << prm[i][j] << ", " << srm[i][j] << std::endl;
     //    }
     //}
+    
+    
     for(int i =0; i<n_spectra; i++){
         //printf("spectra_index:%d, charge:%d, pm:%lf, spectra_length:%d\n",spectra_index[i],charges[i],precursor_mass[i],spectra_length[i]);
         delete[] prm[i];

@@ -4,7 +4,7 @@
 
 ParseResultsTsv::ParseResultsTsv(std::string resultsTsvFilename){
     filename = resultsTsvFilename;
-    std::cout << "Parsing tsv" << std::endl;
+    std::cout << "  Parsing TSV..." << std::endl;
     std::ifstream tsvFile;
 
     tsvFile.open(filename);
@@ -27,7 +27,7 @@ ParseResultsTsv::ParseResultsTsv(std::string resultsTsvFilename){
         match.specFile = temp;      
   
         getline( buffer, temp, '\t');
-        std::cout << temp.substr(6,100) << " | ";
+        //std::cout << temp.substr(6,100) << " | ";
         match.specID = std::stoi(temp.substr(6, 100));       
 
         getline( buffer, temp, '\t');
@@ -75,11 +75,11 @@ ParseResultsTsv::ParseResultsTsv(std::string resultsTsvFilename){
         getline( buffer, temp, '\t');
         match.eValue = std::stod(temp);       
 
-        for(int i = 0; i < match.proteins.size(); i++){ 
-            std::cout << match.proteins[i] << ", ";
+        /*for(int i = 0; i < match.proteins.size(); i++){ 
+            //std::cout << match.proteins[i] << ", ";
             
-        }
-        std::cout << std::endl;
+        }*/
+        //std::cout << std::endl;
         
         matches.push_back(match);
     }

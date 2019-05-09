@@ -1,4 +1,4 @@
-LDLIBS= -fopenmp -pthread
+LDLIBS= -lstdc++fs -fopenmp -pthread
 
 prmSrmMatrix: prm_srm_matrix.o parse_results_tsv.o io.o ppseq.o theoretical_util.o
 	g++ -O3 -std=c++17 prm_srm_matrix.o io.o ppseq.o theoretical_util.o parse_results_tsv.o -o prmSrmMatrix $(LDLIBS)

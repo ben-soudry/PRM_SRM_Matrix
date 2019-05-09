@@ -25,6 +25,8 @@
 #include <random>
 #include <boost/functional/hash.hpp>
 #include <unordered_map>
+#include <experimental/filesystem>
+#include <regex>
 
 
 class PrmSrmMatrix {
@@ -32,7 +34,9 @@ class PrmSrmMatrix {
         static constexpr int numRanges = 40;
        
         std::array<double, numRanges-1> ranges;
-        PrmSrmMatrix(std::string fastaFile, std::string prmSrmFile, std::string resultsTsvFile);
+        PrmSrmMatrix();
+
+        void processSpectra(std::string prmSrmFile, std::string resultsTsvFile);
         
         int getRangeID(double peakMagnitude);
 
@@ -65,11 +69,10 @@ class PrmSrmMatrix {
         ProbMatrix srm_probMatrix;
 
     private:        
-        prmSrm* spectraPrmSrm;
-        ppseq* peptideSeqDB;
-        ParseResultsTsv* tsvResults; 
+        //prmSrm* spectraPrmSrm;
+        //ppseq* peptideSeqDB;
+        //ParseResultsTsv* tsvResults; 
 
-        int num_proteins;
-        std::unordered_map<std::string, theoreticalPrmSrm> theoreticalPrmSrmMap;
+        //int num_proteins;
         
 };
