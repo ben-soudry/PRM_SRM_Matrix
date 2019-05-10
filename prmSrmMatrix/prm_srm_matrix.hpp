@@ -31,15 +31,20 @@
 
 class PrmSrmMatrix {
     public:
-        static constexpr int numRanges = 40;
+        static constexpr int numRanges = 30;
        
         std::array<double, numRanges-1> ranges;
+        
+        std::array<double, numRanges-1> ranges_prm_plus_srm;
+
         PrmSrmMatrix();
 
         void processSpectra(std::string prmSrmFile, std::string resultsTsvFile);
         
         int getRangeID(double peakMagnitude);
 
+        int getRangePrmSrmID(double peakMagnitude);
+        
         const int minPeptideLen = 10;
         const int maxPeptideLen = 50;
         
@@ -52,21 +57,25 @@ class PrmSrmMatrix {
         struct experimentalPrmSrm {
             std::vector<double> prm;
             std::vector<double> srm;
+            std::vector<double> prm_plus_srm;
+            
             int charges;
             double precursor_mass;
         };
 
         
-        typedef std::array<std::array<int, numRanges>,2> CountMatrix;
+        typedef std::array<std::array<long, numRanges>,2> CountMatrix;
         typedef std::array<std::array<double, numRanges>,2> ProbMatrix;
 
  
         CountMatrix prm_countMatrix;
         CountMatrix srm_countMatrix;
-        int totalCounts;      
+        CountMatrix prm_plus_srm_countMatrix;
+        long totalCounts;      
     
         ProbMatrix prm_probMatrix;
         ProbMatrix srm_probMatrix;
+        ProbMatrix prm_plus_srm_probMatrix;
 
     private:        
         //prmSrm* spectraPrmSrm;

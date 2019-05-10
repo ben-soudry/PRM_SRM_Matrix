@@ -66,16 +66,33 @@ int main(){
 
 
 PrmSrmMatrix::PrmSrmMatrix(){
-    ranges = {-9.0, -8.0, -7.0, -6.0, -5.0, -4.0, -3.0, -2.0, -1.0,
+    /*ranges = {-9.0, -8.0, -7.0, -6.0, -5.0, -4.0, -3.0, -2.0, -1.0,
                0.0,  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0,
                10.0,11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0,
                20.0,21.0, 22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0};
-    
+    ranges_prm_plus_srm
+           = {-18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0,
+               0.0,  2.0,  4.0,  6.0,  8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
+               20.0,22.0, 24.0, 26.0, 28.0, 30.0, 32.0, 34.0, 36.0, 38.0,
+               40.0,42.0, 44.0, 46.0, 48.0, 50.0, 52.0, 54.0, 58.0, 60.0};
+      */ 
+   
+    ranges = {-9.0, -8.0, -7.0, -6.0, -5.0, -4.0, -3.0, -2.0, -1.0,
+               0.0,  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0,
+               10.0,11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0};
+    ranges_prm_plus_srm
+           = {-18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0,
+               0.0,  2.0,  4.0,  6.0,  8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
+               20.0,22.0, 24.0, 26.0, 28.0, 30.0, 32.0, 34.0, 36.0, 38.0};
+   
+  
     for(int i = 0; i < numRanges; i++){
         prm_countMatrix[0][i] = 0;
         prm_countMatrix[1][i] = 0;
         srm_countMatrix[0][i] = 0;
         srm_countMatrix[1][i] = 0;
+        prm_plus_srm_countMatrix[0][i] = 0;
+        prm_plus_srm_countMatrix[1][i] = 0;
     } 
     totalCounts = 0;
 }
@@ -99,8 +116,16 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
          
         auto e_srm_vec = std::vector<double>(spectraPrmSrm->srm[i], 
                                             spectraPrmSrm->srm[i] + spectraPrmSrm->spectra_length[i]);
+        
+        //Make combined PRM+SRM vector
+        std::vector<double> e_prm_plus_srm_vec;
+        for(int i = 0; i < e_prm_vec.size(); i++){
+            e_prm_plus_srm_vec.push_back(e_prm_vec[i]+e_srm_vec[i]);
+        }
+        
         e.prm = e_prm_vec;
         e.srm = e_srm_vec;
+        e.prm_plus_srm = e_prm_plus_srm_vec;
         e.charges = spectraPrmSrm->charges[i];
         e.precursor_mass = spectraPrmSrm->precursor_mass[i];
 
@@ -143,7 +168,7 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
        
         std::unordered_map<int, bool> has_t_prm_peak;
         std::unordered_map<int, bool> has_t_srm_peak;
-            
+        
         //std::cout << " PRM: "; 
         for(int k = 0; k < t_prm_vec.size(); k++){
             //std::cout << t_prm_vec[k] << ", ";
@@ -184,6 +209,15 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
                 } else {
                     srm_countMatrix[0][srm_rangeId] += 1;
                 }
+                
+                int prm_plus_srm_rangeId = getRangePrmSrmID(e_prm_srm.prm_plus_srm[i]);
+                
+                //PRM+SRM combined
+                if(has_prm_peak != has_t_prm_peak.end() || has_srm_peak != has_t_srm_peak.end()  ){
+                    prm_plus_srm_countMatrix[1][prm_plus_srm_rangeId] += 1;
+                } else {
+                    prm_plus_srm_countMatrix[0][prm_plus_srm_rangeId] += 1;
+                }
             }
 
         }                
@@ -222,6 +256,18 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
     }
     std::cout << std::endl;
     std::cout << "=================================================" << std::endl;
+    
+    std::cout << "PRM+SRM Count Matrix: " << std::endl;
+    for(int i = 0; i < numRanges; i++){
+        std::cout << prm_plus_srm_countMatrix[0][i] << ", ";
+    }
+    std::cout << std::endl << std::endl;
+    for(int i = 0; i < numRanges; i++){
+        std::cout << prm_plus_srm_countMatrix[1][i] << ", ";
+    }
+     
+    std::cout << std::endl;
+    std::cout << "=================================================" << std::endl;
 
     std::cout << "PRM prob Matrix: " << std::endl;
     for(int i = 0; i < numRanges; i++){
@@ -248,7 +294,19 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
     }
     std::cout << std::endl;
     std::cout << "=================================================" << std::endl;
-
+     
+    std::cout << "PRM+SRM prob Matrix: " << std::endl;
+    for(int i = 0; i < numRanges; i++){
+        prm_plus_srm_probMatrix[0][i] = (double) prm_plus_srm_countMatrix[0][i] / (double) 2*totalCounts;
+        std::cout << prm_plus_srm_probMatrix[0][i] << ", ";
+    }
+    std::cout << std::endl << std::endl;
+    for(int i = 0; i < numRanges; i++){
+        prm_plus_srm_probMatrix[1][i] = (double) prm_plus_srm_countMatrix[1][i] / (double) 2*totalCounts;
+        std::cout << prm_plus_srm_probMatrix[1][i] << ", ";
+    }
+    std::cout << std::endl;
+    std::cout << "=================================================" << std::endl;
 }
 
 
@@ -263,4 +321,13 @@ int PrmSrmMatrix::getRangeID(double peakMagnitude){
 
 }
 
+int PrmSrmMatrix::getRangePrmSrmID(double peakMagnitude){
+    for(int i = 0; i < ranges_prm_plus_srm.size(); i++){
+        if(peakMagnitude < ranges_prm_plus_srm[i]){
+            return i;
+        }
+    }
+    //Larger than all ranges, return last index.
+    return this->numRanges-1;
 
+}
