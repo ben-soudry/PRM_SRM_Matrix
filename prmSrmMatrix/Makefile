@@ -1,7 +1,15 @@
 LDLIBS= -lstdc++fs -fopenmp -pthread
 
+all: prmSrmMatrix prmSrmDotProd
+
 prmSrmMatrix: prm_srm_matrix.o parse_results_tsv.o io.o ppseq.o theoretical_util.o
 	g++ -O3 -std=c++17 prm_srm_matrix.o io.o ppseq.o theoretical_util.o parse_results_tsv.o -o prmSrmMatrix $(LDLIBS)
+
+prmSrmDotProd: prm_srm_dot_prod.o parse_results_tsv.o io.o ppseq.o theoretical_util.o
+	g++ -O3 -std=c++17 prm_srm_dot_prod.o io.o ppseq.o theoretical_util.o parse_results_tsv.o -o prmSrmDotProd $(LDLIBS)
+
+prm_srm_dot_prod.o: prm_srm_dot_prod.cpp prm_srm_dot_prod.hpp
+	g++ -O3 -std=c++17 -c prm_srm_dot_prod.cpp
 
 prm_srm_matrix.o: prm_srm_matrix.cpp prm_srm_matrix.hpp
 	g++ -O3 -std=c++17 -c prm_srm_matrix.cpp

@@ -29,6 +29,9 @@ peakProb = peaks / (peaks+noPeaks)
 print("PRM peakProb ", peakProb )
 
 
+x_axis = [-9.0, -8.0, -7.0, -6.0, -5.0, -4.0, -3.0, -2.0, -1.0,
+               0.0,  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0,
+               10.0,11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0, 20.0]
 
 
 PRM_plus_SRM_colProbs = []
@@ -41,7 +44,7 @@ for i in range(0, PRM_plus_SRM.shape[1]):
     print(colProb, end =", ")
     PRM_plus_SRM_colProbs.append(colProb)
 print()
-plt.plot(PRM_plus_SRM_colProbs, label = 'PRM plus SRM')
+plt.plot(x_axis, PRM_plus_SRM_colProbs, label = 'PRM plus SRM')
 
 PRM_colProbs = []
 
@@ -53,7 +56,7 @@ for i in range(0, PRM.shape[1]):
     print(colProb, end =", ")
     PRM_colProbs.append(colProb)
 print()
-plt.plot(PRM_colProbs, label = 'PRM')
+plt.plot(x_axis, PRM_colProbs, label = 'PRM')
 
 SRM_colProbs = []
 
@@ -65,7 +68,11 @@ for i in range(0, SRM.shape[1]):
     print(colProb, end =", ")
     SRM_colProbs.append(colProb)
 print()
-plt.plot(SRM_colProbs, label = 'SRM')
+plt.plot(x_axis, SRM_colProbs, label = 'SRM')
+
+
+plt.xlabel('MSGF+ Score')
+plt.ylabel('Probability of spectra peak')
 
 plt.legend()
 plt.show()
