@@ -31,7 +31,7 @@
 
 class PrmSrmMatrix {
     public:
-        static constexpr int numRanges = 30;
+        static constexpr int numRanges = 50;
        
         std::array<double, numRanges-1> ranges;
         
@@ -77,6 +77,7 @@ class PrmSrmMatrix {
         ProbMatrix srm_probMatrix;
         ProbMatrix prm_plus_srm_probMatrix;
 
+        void modify_spectra(prmSrm& ps);
     private:        
         //prmSrm* spectraPrmSrm;
         //ppseq* peptideSeqDB;

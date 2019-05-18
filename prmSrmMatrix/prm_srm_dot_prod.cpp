@@ -1,4 +1,4 @@
-#include "prm_srm_matrix.hpp"
+#include "prm_srm_dot_prod.hpp"
 
 
 int main(){
@@ -109,6 +109,8 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
     //Get experimental PRM SRM from specta
     auto spectraPrmSrm = new prmSrm(prmSrmFile);
     
+    modify_spectra(*spectraPrmSrm);
+
     std::unordered_map<int, experimentalPrmSrm> experimentalPrmSrmMap;
 
     for(int i = 0; i < spectraPrmSrm->n_spectra; i++){
@@ -156,15 +158,18 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
         std::string peptideFirst = tsvResults->matches[i].peptide.substr(0, 8);        
 
 
-        if(tsvResults->matches[i].specID != 4403 || peptideFirst != first){
+        if(tsvResults->matches[i].specID != 4404 ||  peptideFirst != first){
             continue;
         }
-        std::cout << "***Peptide: " << tsvResults->matches[i].peptide << std::endl; 
 
         if(tsvResults->matches[i].eValue >= 0.001 /*0.000000000001*/){
             continue;
         }       
-        
+        tsvResults->matches[i].peptide.erase(std::remove_if(tsvResults->matches[i].peptide.begin(), tsvResults->matches[i].peptide.end(), 
+[]( auto const& c ) -> bool { return !std::isalnum(c); } ), tsvResults->matches[i].peptide.end()); 
+
+        std::cout << "***Peptide: " << tsvResults->matches[i].peptide << " SpecID: "<< tsvResults->matches[i].specID << std::endl; 
+
         double* t_prm = nullptr; //Note, theoretical_vector allocates the memory
         double* t_srm = nullptr;
         double total_mass;
@@ -183,18 +188,18 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
         std::unordered_map<int, bool> has_t_prm_peak;
         std::unordered_map<int, bool> has_t_srm_peak;
         
-        //std::cout << " PRM: "; 
+        std::cout << " PRM: "; 
         for(int k = 0; k < t_prm_vec.size(); k++){
-            //std::cout << t_prm_vec[k] << ", ";
+            std::cout << t_prm_vec[k] << ", ";
             has_t_prm_peak.insert(std::make_pair((int) std::round(t_prm_vec[k]), true));
         }
-        //std::cout << std::endl;
-        //std::cout << " SRM: "; 
+        std::cout << std::endl;
+        std::cout << " SRM: "; 
         for(int k = 0; k < t_srm_vec.size(); k++){
-            //std::cout << t_srm_vec[k] << ", ";
+            std::cout << t_srm_vec[k] << ", ";
             has_t_srm_peak.insert(std::make_pair((int) std::round(t_srm_vec[k]), true));
         }
-          
+        std::cout << std::endl;  
         //Filling count matrix
         int specID =  tsvResults->matches[i].specID;
         auto emapFind = experimentalPrmSrmMap.find(specID);
@@ -210,7 +215,7 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
             std::cout << "*************************** " << std::endl;
             std::cout << "*****Result! = " << result << std::endl;
             std::cout << "*************************** " << std::endl;
-            std::cout << "Length: " << e_prm_srm.prm.size() << std::endl;
+            std::cout << "Length " << e_prm_srm.prm.size() << std::endl;
             for(int i = 0; i < e_prm_srm.prm.size(); i++){
                 totalCounts += 1;
                 int prm_rangeId = getRangeID(e_prm_srm.prm[i]);
@@ -363,9 +368,10 @@ int PrmSrmMatrix::getRangePrmSrmID(double peakMagnitude){
 
 double PrmSrmMatrix::getDotProd(experimentalPrmSrm e, std::vector<double> t_prm, std::vector<double> t_srm){
 
-      std::unordered_map<int, bool> has_t_prm_peak;
-      std::unordered_map<int, bool> has_t_srm_peak;
-        
+      std::map<int, bool> has_t_prm_peak;
+      std::map<int, bool> has_t_srm_peak;
+      
+ 
       //std::cout << " PRM: "; 
       for(int k = 0; k < t_prm.size(); k++){
         //std::cout << t_prm_vec[k] << ", ";
@@ -379,9 +385,14 @@ double PrmSrmMatrix::getDotProd(experimentalPrmSrm e, std::vector<double> t_prm,
       }
       double result = 0.0;
       for(auto it = has_t_prm_peak.begin(); it != has_t_prm_peak.end(); ++it){
+
+
         if((*it).first < e.prm.size()){
             std::cout << "PRM peak at " <<  (*it).first << " Magnitude: " << e.prm[(*it).first] << std::endl;
             result += e.prm.at((*it).first);
+        }
+        else {
+            std::cout << "PRM peak at " <<  (*it).first << " out of bounds " << std::endl;
         }
       }
 
@@ -390,8 +401,60 @@ double PrmSrmMatrix::getDotProd(experimentalPrmSrm e, std::vector<double> t_prm,
             std::cout << "SRM peak at " <<  (*it).first << " Magnitude: " << e.srm[(*it).first] << std::endl;
             result += e.srm.at((*it).first);
         }
+        else {
+            std::cout << "SRM peak at " <<  (*it).first << " out of bounds " << std::endl;
+        }
+    
       }
+      std::cout << "spectra print: " << std::endl;
+      for(int i = 0; i < e.prm.size();  i++){
+        std::cout << e.prm[i] << ", ";
+      }
+      for(int i = 0; i < e.srm.size();  i++){
+        std::cout << e.srm[i] << ", ";
+      }
+      std::cout << std::endl;
+
       return result;
  
 
 }
+
+
+void PrmSrmMatrix::modify_spectra(prmSrm& ps) {
+    for (int i = 0; i < ps.n_spectra; i++) {
+        int len = ps.spectra_length[i];
+       
+        std::map <double, std::pair<int, bool> > bigprmsrm;
+
+        for (int j = 0; j < len; j++) {
+            if (ps.prm[i][j] < 1) ps.prm[i][j] = 0;
+            //else ps.prm[i][j] = sqrt(ps.prm[i][j]);
+            if (ps.srm[i][j] < 1) ps.srm[i][j] = 0;
+            //else ps.srm[i][j] = sqrt(ps.srm[i][j]);
+            
+            if (bigprmsrm.size() < 20) bigprmsrm.insert(std::make_pair(ps.prm[i][j], std::make_pair(j, 0)));
+            else if (bigprmsrm.begin()->first < ps.prm[i][j]) {
+                bigprmsrm.erase(bigprmsrm.begin());
+                bigprmsrm.insert(std::make_pair(ps.prm[i][j], std::make_pair(j, 0)));
+            }
+
+            if (bigprmsrm.size() < 20) bigprmsrm.insert(make_pair(ps.srm[i][j], std::make_pair(j, 1)));
+            else if (bigprmsrm.begin()->first < ps.srm[i][j]) {
+                bigprmsrm.erase(bigprmsrm.begin());
+                bigprmsrm.insert(std::make_pair(ps.srm[i][j], std::make_pair(j, 1)));
+            }
+        }
+
+        for (auto it = bigprmsrm.begin(); it != bigprmsrm.end(); ++it) {
+            int idx = it->second.first;
+            bool srmyes = it->second.second;
+            if (srmyes) ps.srm[i][idx] /= 10000;
+            else ps.prm[i][idx] /= 10000;
+        }
+    }
+}
+
+
+
+

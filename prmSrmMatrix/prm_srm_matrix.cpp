@@ -77,15 +77,23 @@ PrmSrmMatrix::PrmSrmMatrix(){
                40.0,42.0, 44.0, 46.0, 48.0, 50.0, 52.0, 54.0, 58.0, 60.0};
       */ 
    
-    ranges = {-9.0, -8.0, -7.0, -6.0, -5.0, -4.0, -3.0, -2.0, -1.0,
-               0.0,  1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0,
-               10.0,11.0, 12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0};
+    ranges = {-10.0,  -9.5, -9.0, -8.5,  -8.0,  -7.5,  -7.0,  -6.5,  -6.0,
+               -5.5,  -5.0, -4.5, -4.0,  -3.5,  -3.0,  -2.5,  -2.0,  -1.5,  -1.0,
+               -0.5,   0.0,  0.5,  1.0,   1.5,   2.0,   2.5,   3.0,  3.5, 4.0,
+                4.5,   5.0,  5.5,  6.0,   7.0,   8.0,  9.0,  10.0,   11.0, 12.0, 
+                13.0, 14.0,  15.0,16.0,  17.0,  18.0, 19.0,  20.0,   21.0, 23.0};
     ranges_prm_plus_srm
            = {-18.0, -16.0, -14.0, -12.0, -10.0, -8.0, -6.0, -4.0, -2.0,
                0.0,  2.0,  4.0,  6.0,  8.0,  10.0,  12.0,  14.0,  16.0,  18.0,
                20.0,22.0, 24.0, 26.0, 28.0, 30.0, 32.0, 34.0, 36.0, 38.0};
    
-  
+    
+   /*ranges =   {1.0,  2.0,  3.0,  4.0,  5.0,  6.0,  7.0,  8.0,  9.0,  10.0,
+               11.0,12.0, 13.0, 14.0, 15.0, 16.0, 17.0, 18.0, 19.0,  20.0,
+               21.0,22.0, 23.0, 24.0, 25.0, 26.0, 27.0, 28.0, 29.0};*/
+   
+
+ 
     for(int i = 0; i < numRanges; i++){
         prm_countMatrix[0][i] = 0;
         prm_countMatrix[1][i] = 0;
@@ -105,7 +113,9 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
     
     //Get experimental PRM SRM from specta
     auto spectraPrmSrm = new prmSrm(prmSrmFile);
-    
+   
+    //modify_spectra(*spectraPrmSrm);
+ 
     std::unordered_map<int, experimentalPrmSrm> experimentalPrmSrmMap;
 
     for(int i = 0; i < spectraPrmSrm->n_spectra; i++){
@@ -129,7 +139,7 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
         e.charges = spectraPrmSrm->charges[i];
         e.precursor_mass = spectraPrmSrm->precursor_mass[i];
 
-        experimentalPrmSrmMap.insert(std::make_pair(spectraPrmSrm->spectra_index[i], e));
+        experimentalPrmSrmMap.insert(std::make_pair(spectraPrmSrm->spectra_index[i]-1, e));
     }
     
 
@@ -188,16 +198,24 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
             matchCount += 1;
             //std::cout << "Filling count matrix!" << std::endl;
             experimentalPrmSrm e_prm_srm  = emapFind->second;
+
+            
+            //double result = getDotProd(e_prm_srm, t_prm_vec, t_srm_vec);
+
             for(int i = 0; i < e_prm_srm.prm.size(); i++){
                 totalCounts += 1;
                 int prm_rangeId = getRangeID(e_prm_srm.prm[i]);
-                   
+                 
+                //int prm_plus_srm_rangeId = getRangePrmSrmID(e_prm_srm.prm_plus_srm[i]);
+ 
                 //std::cout << "prm_range_id: " << prm_rangeId << std::endl;
                 auto has_prm_peak = has_t_prm_peak.find(i);
                 if(has_prm_peak != has_t_prm_peak.end()){
                     prm_countMatrix[1][prm_rangeId] += 1;
+                    prm_plus_srm_countMatrix[1][prm_rangeId] += 1;
                 } else {
                     prm_countMatrix[0][prm_rangeId] += 1;
+                    prm_plus_srm_countMatrix[0][prm_rangeId] += 1;
                 }
                 
                 int srm_rangeId = getRangeID(e_prm_srm.srm[i]);
@@ -206,21 +224,21 @@ void PrmSrmMatrix::processSpectra(std::string prmSrmFile, std::string resultsTsv
                 auto has_srm_peak = has_t_srm_peak.find(i);
                 if(has_srm_peak != has_t_srm_peak.end()){
                     srm_countMatrix[1][srm_rangeId] += 1;
+                    prm_plus_srm_countMatrix[1][srm_rangeId] += 1;
                 } else {
                     srm_countMatrix[0][srm_rangeId] += 1;
+                    prm_plus_srm_countMatrix[0][srm_rangeId] += 1;
                 }
                 
-                int prm_plus_srm_rangeId = getRangePrmSrmID(e_prm_srm.prm_plus_srm[i]);
                 
                 //PRM+SRM combined
-                if(has_prm_peak != has_t_prm_peak.end() || has_srm_peak != has_t_srm_peak.end()  ){
+                /*if(has_prm_peak != has_t_prm_peak.end() || has_srm_peak != has_t_srm_peak.end()  ){
                     prm_plus_srm_countMatrix[1][prm_plus_srm_rangeId] += 1;
                 } else {
                     prm_plus_srm_countMatrix[0][prm_plus_srm_rangeId] += 1;
-                }
+                }*/
             }
-
-        }                
+        }     
         //std::cout << std::endl; 
     }
     delete spectraPrmSrm;
@@ -331,3 +349,39 @@ int PrmSrmMatrix::getRangePrmSrmID(double peakMagnitude){
     return this->numRanges-1;
 
 }
+
+void PrmSrmMatrix::modify_spectra(prmSrm& ps) {
+    for (int i = 0; i < ps.n_spectra; i++) {
+        int len = ps.spectra_length[i];
+       
+        std::map <double, std::pair<int, bool> > bigprmsrm;
+
+        for (int j = 0; j < len; j++) {
+            if (ps.prm[i][j] < 1) ps.prm[i][j] = 0;
+            //else ps.prm[i][j] = sqrt(ps.prm[i][j]);
+            if (ps.srm[i][j] < 1) ps.srm[i][j] = 0;
+            //else ps.srm[i][j] = sqrt(ps.srm[i][j]);
+            
+            if (bigprmsrm.size() < 20) bigprmsrm.insert(std::make_pair(ps.prm[i][j], std::make_pair(j, 0)));
+            else if (bigprmsrm.begin()->first < ps.prm[i][j]) {
+                bigprmsrm.erase(bigprmsrm.begin());
+                bigprmsrm.insert(std::make_pair(ps.prm[i][j], std::make_pair(j, 0)));
+            }
+
+            if (bigprmsrm.size() < 20) bigprmsrm.insert(make_pair(ps.srm[i][j], std::make_pair(j, 1)));
+            else if (bigprmsrm.begin()->first < ps.srm[i][j]) {
+                bigprmsrm.erase(bigprmsrm.begin());
+                bigprmsrm.insert(std::make_pair(ps.srm[i][j], std::make_pair(j, 1)));
+            }
+        }
+
+        for (auto it = bigprmsrm.begin(); it != bigprmsrm.end(); ++it) {
+            int idx = it->second.first;
+            bool srmyes = it->second.second;
+            if (srmyes) ps.srm[i][idx] /= 10000;
+            else ps.prm[i][idx] /= 10000;
+        }
+    }
+}
+
+

@@ -29,9 +29,11 @@
 #include <regex>
 
 
+
+
 class PrmSrmMatrix {
     public:
-        static constexpr int numRanges = 30;
+        static constexpr int numRanges = 50;
        
         std::array<double, numRanges-1> ranges;
         
@@ -76,7 +78,10 @@ class PrmSrmMatrix {
         ProbMatrix prm_probMatrix;
         ProbMatrix srm_probMatrix;
         ProbMatrix prm_plus_srm_probMatrix;
+        
+        double getDotProd(experimentalPrmSrm e, std::vector<double> t_prm, std::vector<double> t_srm);
 
+        void modify_spectra(prmSrm& ps);
     private:        
         //prmSrm* spectraPrmSrm;
         //ppseq* peptideSeqDB;
@@ -85,7 +90,6 @@ class PrmSrmMatrix {
         //int num_proteins
 ;
        
-        double getDotProd(experimentalPrmSrm e, std::vector<double> t_prm, std::vector<double> t_srm);
 
 
  
