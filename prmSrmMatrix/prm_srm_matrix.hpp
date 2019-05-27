@@ -31,7 +31,11 @@
 
 class PrmSrmMatrix {
     public:
-        static constexpr int numRanges = 50;
+
+        std::ofstream spectraFile;
+        std::ofstream peptideFile;
+
+        static constexpr int numRanges = 30;
        
         std::array<double, numRanges-1> ranges;
         
@@ -72,7 +76,9 @@ class PrmSrmMatrix {
         CountMatrix srm_countMatrix;
         CountMatrix prm_plus_srm_countMatrix;
         long totalCounts;      
-    
+        long totalMatches;
+
+
         ProbMatrix prm_probMatrix;
         ProbMatrix srm_probMatrix;
         ProbMatrix prm_plus_srm_probMatrix;
